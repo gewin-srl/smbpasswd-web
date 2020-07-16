@@ -1,0 +1,13 @@
+[Unit]
+Description=smbpasswd-web Web Server
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/opt/smbpasswd-web/bin/smbpasswd_server.sh start
+ExecStop=/opt/smbpasswd-web/bin/smbpasswd_server.sh stop
+#User=root
+#Group=root
+
+[Install]
+WantedBy=multi-user.target

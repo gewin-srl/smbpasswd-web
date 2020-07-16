@@ -1,4 +1,4 @@
 .vscode
 res/tokens
 res/*.pem
-
+conf/env
