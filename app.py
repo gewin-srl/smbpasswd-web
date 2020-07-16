@@ -34,6 +34,7 @@ _DEFAULT_ADDRESS = "localhost"
 
 _DEFAULT_SSL_CERT = "res/fullchain.pem"
 _DEFAULT_SSL_KEY = "res/privkey.pem"
+_DEFAULT_SSL_PROTOCOL = "TLS" #ssl.PROTOCOL_TLS
 
 _APP_PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -41,7 +42,7 @@ _use_sudo = False
 _use_samba_tool = False
 _verbose = False
 
-def _start_web_server(is_ssl, ssl_cert, ssl_key, address, port):
+def _start_web_server(is_ssl, ssl_cert, ssl_key, address, port, ssl_protocol):
     # Change working dir to app root folder
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     httpd = http.server.HTTPServer((address, port), SmbpasswdRequestHandler)
@@ -49,7 +50,17 @@ def _start_web_server(is_ssl, ssl_cert, ssl_key, address, port):
         if ssl_cert and ssl_key and (not os.path.isfile(ssl_cert) or not os.path.isfile(ssl_key)):
             print("SSL Certificate/Private Key not found!")
             sys.exit(1)
-        httpd.socket = ssl.wrap_socket(httpd.socket, certfile=ssl_cert, keyfile=ssl_key, server_side=True)
+
+        if ssl_protocol == "TLSv1":
+            ssl_version = ssl.PROTOCOL_TLSv1
+        elif ssl_protocol == "TLSv1_1":
+            ssl_version = ssl.PROTOCOL_TLSv1_1
+        elif ssl_protocol == "TLSv1_2":
+            ssl_version = ssl.PROTOCOL_TLSv1_2
+        else:
+            ssl_version = ssl.PROTOCOL_TLS
+
+        httpd.socket = ssl.wrap_socket(httpd.socket, certfile=ssl_cert, keyfile=ssl_key, server_side=True, ssl_version=ssl_version)
     # Change working dir to static resources folder
     os.chdir(f"{_APP_PATH}/static")
     protocol = "https" if is_ssl else "http"
@@ -231,6 +242,7 @@ def main():
     parser_server.add_argument("--ssl", help="Start webserver using SSL", action="store_true")
     parser_server.add_argument("--ssl-cert",help="SSL certificate to use (default: %(default)s)", default=_DEFAULT_SSL_CERT)
     parser_server.add_argument("--ssl-key",help="SSL certificate private key (default: %(default)s)", default=_DEFAULT_SSL_KEY)
+    parser_server.add_argument("--ssl-protocol", help="The SSL protocol to use [TLS,TLSv1,TLSv1_1,TLSv1_2] (default: %(default)s)", default=_DEFAULT_SSL_PROTOCOL)
 
     # Token command
     parser_token = subparsers.add_parser("gen-token", help="Generate a token to a username")
@@ -255,7 +267,7 @@ def main():
 
         _use_sudo = _args.sudo
         _use_samba_tool = _args.samba_tool
-        _start_web_server(_args.ssl, _args.ssl_cert, _args.ssl_key, _args.address, int(_args.port))
+        _start_web_server(_args.ssl, _args.ssl_cert, _args.ssl_key, _args.address, int(_args.port), _args.ssl_protocol)
     elif _args.command == "gen-token":
         _generate_token(_args.username, _args.ssl, _args.fqdn)
     else:
