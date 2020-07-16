@@ -91,6 +91,8 @@ class SmbpasswdRequestHandler(http.server.SimpleHTTPRequestHandler):
             http.server.SimpleHTTPRequestHandler.log_message(self, format, *args)
 
     def _call_tool(self, username, password):
+        output = [0, ""] #Returncode, message - marzio 16/07/2020
+
         args = ["sudo"]
         input_param = None
         if _use_samba_tool:
@@ -105,15 +107,22 @@ class SmbpasswdRequestHandler(http.server.SimpleHTTPRequestHandler):
             proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
             _, std_err = proc.communicate(input=input_param)
             if proc.returncode == 0:
-                return True
+                return output
+                #return True
             else:
                 print("smbpasswd returned", proc.returncode)
                 print("stderr:", std_err.decode("UTF-8"))
-                return False
+
+                output = [1, std_err.decode("UTF-8")]
+                return output
+                #return False
         except:
             print("Failed to change user password!")
             traceback.print_exc(file=sys.stdout)
-            return False
+
+            output = [2, sys.stdout.decode("UTF-8")]
+            return output
+            #return False
 
     def get_username(self, provided_token):
         """Return the username associates with the provided token"""
@@ -168,14 +177,18 @@ class SmbpasswdRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.invalid_api_request()
             return
 
-        if self._call_tool(username, password) == True:
+        call_tool_output = self._call_tool(username, password) #marzio 16/07/2020
+        if call_tool_output[0] == 0:
+        #if self._call_tool(username, password) == True:
+
             self.remove_token(token)
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({"status":"OK"}).encode())
         else:
-            self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Could not set password.")
+            self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Could not set password: %(err_msg)s", err_msg=call_tool_output[1] ) #marzio 16/07/2020
+            #self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Could not set password.")
 
     def do_GET(self):
         """Process Static files requests"""
