@@ -187,7 +187,7 @@ class SmbpasswdRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({"status":"OK"}).encode())
         else:
-            self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Could not set password: %(err_msg)s", err_msg=call_tool_output[1] ) #marzio 16/07/2020
+            self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Could not set password: " + call_tool_output[1]) #marzio 16/07/2020
             #self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Could not set password.")
 
     def do_GET(self):

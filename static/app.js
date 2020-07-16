@@ -44,12 +44,14 @@ function checkPassStrength(pass) {
 }
 
 function populateUsername(token) {
-    function fail() {
+    function fail(htmlMessage) {
+        if (htmlMessage == null)
+            htmlMessage = 'Invalid authentication token! <br />Contact your System Administrator.'
         $("input,button").prop("disabled", true);
         swal({
             type: 'error',
             title: 'Oops...',
-            html: 'Invalid authentication token! <br />Contact your System Administrator.'
+            html: htmlMessage
         });
     }
 
@@ -67,7 +69,11 @@ function populateUsername(token) {
             fail();
         }
     }).fail(function (data) {
-        fail();
+        if (data && typeof data === "object" && data.hasOwnProperty("statusText")){
+            fail(data.statusText);
+        }else{
+            fail();
+        }
     });
 }
 
@@ -81,12 +87,15 @@ function populateUsername(token) {
         $("#btn-submit").prop("disabled", !equal);
     };
 
-    function fail() {
+    function fail(htmlMessage) {
+        if (htmlMessage == null)
+            htmlMessage = "Couldn't change user's password. <br />Contact your System Administrator."
+
         $("input,button").prop("disabled", true);
         swal({
             type: 'error',
             title: 'Oops...',
-            html: "Couldn't change user's password. <br />Contact your System Administrator."
+            html: htmlMessage
         })
     }
 
@@ -112,7 +121,11 @@ function populateUsername(token) {
                 fail();
             }
         }).fail(function (data) {
-            fail();
+            if (data && typeof data === "object" && data.hasOwnProperty("statusText")){
+                fail(data.statusText);
+            }else{
+                fail();
+            }
         });
     });
 
