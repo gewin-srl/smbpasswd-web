@@ -71,7 +71,7 @@ function populateUsername(token) {
     }).fail(function (data) {
         if (data && typeof data === "object" && data.hasOwnProperty("statusText")){
             fail(data.statusText);
-        }else{
+        } else {
             fail();
         }
     });
@@ -93,6 +93,9 @@ function populateUsername(token) {
 
         //In this case we allow the user to retry: maybe the password didn't comply with samba password settings.
         //$("input,button").prop("disabled", true);
+
+        $("#btn-submit").prop("disabled", false);
+
         swal({
             type: 'error',
             title: 'Oops...',
@@ -101,6 +104,10 @@ function populateUsername(token) {
     }
 
     $("#btn-submit").click(function () {
+
+        //Disable the button to disallow double-clicks
+        $("#btn-submit").prop("disabled", true);
+
         $.ajax({
             url: "api/set_password",
             type: "POST",
@@ -112,7 +119,7 @@ function populateUsername(token) {
             if (data && typeof data === "object" &&
                 data.hasOwnProperty("status") && data["status"] == "OK") {
                 $("#username,#password,#password-check").val("").prop("disabled", true);
-                $("#btn-submit").prop("disabled", true);
+                //$("#btn-submit").prop("disabled", true);
                 swal({
                     type: 'success',
                     title: 'Done',
