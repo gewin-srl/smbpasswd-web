@@ -91,7 +91,8 @@ function populateUsername(token) {
         if (htmlMessage == null)
             htmlMessage = "Couldn't change user's password. <br />Contact your System Administrator."
 
-        $("input,button").prop("disabled", true);
+        //In this case we allow the user to retry: maybe the password didn't comply with samba password settings.
+        //$("input,button").prop("disabled", true);
         swal({
             type: 'error',
             title: 'Oops...',
@@ -123,7 +124,7 @@ function populateUsername(token) {
         }).fail(function (data) {
             if (data && typeof data === "object" && data.hasOwnProperty("statusText")){
                 fail(data.statusText);
-            }else{
+            } else {
                 fail();
             }
         });
